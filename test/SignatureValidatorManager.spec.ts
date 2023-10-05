@@ -24,9 +24,10 @@ describe("SignatureValidatorManager", () => {
         return { safeProtocolSignatureValidatorManager, safeProtocolManager, safeProtocolRegistry };
     });
 
-    it.skip("Should revert if signature validator is not registered", async () => {
+    it("Should revert if signature validator is not registered", async () => {
         const { safeProtocolSignatureValidatorManager, safeProtocolManager } = await setupTests();
         const account = await hre.ethers.deployContract("TestExecutor", [safeProtocolManager.target], { signer: deployer });
+        await account.setFallbackHandler(safeProtocolManager.target);
 
         const setFunctionHandlerData = safeProtocolManager.interface.encodeFunctionData("setFunctionHandler", [
             "0x1626ba7e",
@@ -38,9 +39,14 @@ describe("SignatureValidatorManager", () => {
             "function isValidSignature(bytes32,bytes) public view returns (bytes4)",
         ]);
 
+       const safeSignatureFragment = new hre.ethers.Interface([`function safeSignature(bytes32,bytes32,bytes,bytes)`]);
+       const encodedMessage = safeSignatureFragment.encodeFunctionData("safeSignature(bytes32,bytes32,bytes,bytes)", [
+        hre.ethers.randomBytes(32),hre.ethers.randomBytes(32), hre.ethers.randomBytes(20), hre.ethers.randomBytes(64)
+       ]);
+
         const data = isValidSignatureInterface.encodeFunctionData("isValidSignature", [
             hre.ethers.randomBytes(32),
-            hre.ethers.randomBytes(100),
+            encodedMessage,
         ]);
 
         await expect(account.executeCallViaMock(account.target, 0, data, MaxUint256))

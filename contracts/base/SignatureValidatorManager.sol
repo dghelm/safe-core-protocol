@@ -66,21 +66,22 @@ contract SignatureValidatorManager is RegistryManager, ISafeProtocolFunctionHand
         bytes calldata data
     ) external view override returns (bytes memory) {
         // Should restrict msg.sender only to Manager?
-
-        // Get the parameters for signature verification, skipping the first 4bytes as that is the non-padded selector.
-        (bytes32 _hash, bytes32 domainSeparator, bytes32 typeHash, bytes memory encodedData, bytes memory payload) = abi.decode(
-            data[4:],
-            (bytes32, bytes32, bytes32, bytes, bytes)
+        (bytes32 _hash, bytes32 domainSeparator) = abi.decode(
+            data[4:68],
+            (bytes32, bytes32)
         );
 
-        // Last 32 bytes of data contains domainSeparator
         address signatureValidator = signatureValdiators[account][domainSeparator];
-
         if (signatureValidator == address(0)) {
             revert SignatureValidatorNotSet(account);
         }
-
         checkPermittedModule(signatureValidator, MODULE_TYPE_SIGNATURE_VALIDATOR);
+
+        // Get the parameters for signature verification, skipping the first 4bytes as that is the non-padded selector.
+        (,, bytes32 typeHash, bytes memory encodedData, bytes memory payload) = abi.decode(
+            data[4:],
+            (bytes32, bytes32, bytes32, bytes, bytes)
+        );
 
         bytes4 returnValue = ISafeProtocol712SignatureValidator(signatureValidator).isValidSignature(
             account,
