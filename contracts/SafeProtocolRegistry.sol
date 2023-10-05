@@ -59,8 +59,8 @@ contract SafeProtocolRegistry is ISafeProtocolRegistry, Ownable2Step {
         ModuleInfo memory moduleInfo = listedModules[module];
 
         // Check if module is already listed or if moduleTypes is greater than 8.
-        // Maximum allowed value of moduleTypes is 7. i.e. 2^0 (Plugin) + 2^1 (Function Handler) + 2^2 (Hooks)
-        if (moduleInfo.listedAt != 0 || moduleTypes > 7) {
+        // Maximum allowed value of moduleTypes is 15. i.e. 2^0 (Plugin) + 2^1 (Function Handler) + 2^2 (Hooks) + 2^3 (Signature Validator)
+        if (moduleInfo.listedAt != 0 || moduleTypes > 15) {
             revert CannotAddModule(module, moduleTypes);
         }
 

@@ -3,6 +3,7 @@ pragma solidity ^0.8.18;
 import {ISafeProtocol712SignatureValidator} from "../interfaces/Modules.sol";
 import {RegistryManager} from "../base/RegistryManager.sol";
 import {ISafeProtocolFunctionHandler} from "../interfaces/Modules.sol";
+import {MODULE_TYPE_SIGNATURE_VALIDATOR} from "../common/Constants.sol";
 
 /**
  * @title SignatureValidatorManager
@@ -26,7 +27,7 @@ contract SignatureValidatorManager is RegistryManager, ISafeProtocolFunctionHand
     event SignatureValidatorChanged(address indexed account, bytes32 indexed domainSeparator, address indexed signatureValidator);
 
     // Errors
-    error SingatureValidatorNotSet(address account);
+    error SignatureValidatorNotSet(address account);
 
     /**
      * @notice Sets the signature validator contract for an account
@@ -34,7 +35,7 @@ contract SignatureValidatorManager is RegistryManager, ISafeProtocolFunctionHand
      */
     function setSignatureValidator(bytes32 domainSeparator, address signatureValidator) external onlyAccount {
         if (signatureValidator != address(0)) {
-            checkPermittedModule(signatureValidator);
+            checkPermittedModule(signatureValidator, MODULE_TYPE_SIGNATURE_VALIDATOR);
             if (
                 !ISafeProtocol712SignatureValidator(signatureValidator).supportsInterface(
                     type(ISafeProtocol712SignatureValidator).interfaceId
@@ -76,10 +77,10 @@ contract SignatureValidatorManager is RegistryManager, ISafeProtocolFunctionHand
         address signatureValidator = signatureValdiators[account][domainSeparator];
 
         if (signatureValidator == address(0)) {
-            revert SingatureValidatorNotSet(account);
+            revert SignatureValidatorNotSet(account);
         }
 
-        checkPermittedModule(signatureValidator);
+        checkPermittedModule(signatureValidator, MODULE_TYPE_SIGNATURE_VALIDATOR);
 
         bytes4 returnValue = ISafeProtocol712SignatureValidator(signatureValidator).isValidSignature(
             account,

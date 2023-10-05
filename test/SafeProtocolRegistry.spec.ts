@@ -60,9 +60,9 @@ describe("SafeProtocolRegistry", async () => {
         const { safeProtocolRegistry } = await setupTests();
         const mockHookAddress = (await getHooksWithPassingChecks()).target;
 
-        await expect(safeProtocolRegistry.connect(owner).addModule(mockHookAddress, 8))
+        await expect(safeProtocolRegistry.connect(owner).addModule(mockHookAddress, 16))
             .to.be.revertedWithCustomError(safeProtocolRegistry, "CannotAddModule")
-            .withArgs(mockHookAddress, 8);
+            .withArgs(mockHookAddress, 16);
     });
 
     it("Should not allow non-owner to add a module", async () => {
