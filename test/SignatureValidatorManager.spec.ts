@@ -39,15 +39,12 @@ describe("SignatureValidatorManager", () => {
             "function isValidSignature(bytes32,bytes) public view returns (bytes4)",
         ]);
 
-       const safeSignatureFragment = new hre.ethers.Interface([`function safeSignature(bytes32,bytes32,bytes,bytes)`]);
-       const encodedMessage = safeSignatureFragment.encodeFunctionData("safeSignature(bytes32,bytes32,bytes,bytes)", [
-        hre.ethers.randomBytes(32),hre.ethers.randomBytes(32), hre.ethers.randomBytes(20), hre.ethers.randomBytes(64)
-       ]);
+        const encodedData = new hre.ethers.AbiCoder().encode(
+            ["bytes32", "bytes32", "bytes", "bytes"],
+            [hre.ethers.randomBytes(32), hre.ethers.randomBytes(32), hre.ethers.randomBytes(64), hre.ethers.randomBytes(64)],
+        );
 
-        const data = isValidSignatureInterface.encodeFunctionData("isValidSignature", [
-            hre.ethers.randomBytes(32),
-            encodedMessage,
-        ]);
+        const data = isValidSignatureInterface.encodeFunctionData("isValidSignature", [hre.ethers.keccak256(encodedData), encodedData]);
 
         await expect(account.executeCallViaMock(account.target, 0, data, MaxUint256))
             .to.be.revertedWithCustomError(safeProtocolSignatureValidatorManager, "SignatureValidatorNotSet")
